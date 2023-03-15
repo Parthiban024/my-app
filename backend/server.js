@@ -12,7 +12,7 @@ const PORT = 5000;
 app.use(cors());
 
 // Set up MongoDB connection
-mongoose.connect('mongodb+srv://ParthiGMR:Parthiban7548@parthibangmr.1quwer2.mongodb.net/my-database-two', {
+mongoose.connect('mongodb+srv://ParthiGMR:Parthiban7548@parthibangmr.1quwer2.mongodb.net/my-database', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -54,20 +54,21 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.post('/submit', upload.single('resume'), async (req, res) => {
   // Create a new document in the MongoDB collection using Mongoose
   const { firstName, lastName, email, phone, company, degree, year, experience } = req.body;
-  const resume = req.file.path;
+  const resume = req.file ? req.file.filename : null; // Check if file exists before accessing filename property
 
   const data = { firstName, lastName, email, phone, company, degree, year, resume, experience }; // Add experience field
   const newEntry = new FormEntry(data);
   
   try {
     await newEntry.save();
-    res.send('Form submitted successfully');
+    res.send(data); 
   } catch (err) {
     console.log(err);
     res.status(500).send('Server error');
   }
   
 });
+
 
 // Define Mongoose schema for form data
 const formSchema = new mongoose.Schema({
@@ -77,13 +78,12 @@ const formSchema = new mongoose.Schema({
   phone: Number,
   company: String,
   degree: String,
-  year: String,
+  year: Number,
   resume: String,
-  experience: String, // Add this field
+  experience: Number, // Add this field
 });
 
-
-const FormEntry = mongoose.model('FormEntry', formSchema);
+const FormEntry = mongoose.model('FormEntry', formSchema); // Define the model after the schema is created
 
 // Start the server
 app.listen(PORT, () => {
